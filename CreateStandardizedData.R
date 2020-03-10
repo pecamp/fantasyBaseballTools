@@ -69,11 +69,11 @@ if(toDownload == TRUE){
   
   # Create read-in bat pathway
   tempCSV       <- gsub("TYPESYS", readVector[dataIX[1]], baseBatRead)
-  tempBAT.PATH  <- paste0(storePATH, tempCSV)
+  tempBAT.PATH  <- file.path(storePATH, tempCSV)
   
   # Create read-in pitch pathway
   tempCSV       <- gsub("TYPESYS", readVector[dataIX[1]], basePitRead)
-  tempPIT.PATH  <- paste0(storePATH, tempCSV)
+  tempPIT.PATH  <- file.path(storePATH, tempCSV)
   
   # Echo location of data
   print(paste("...from:", tempBAT.PATH))
@@ -82,6 +82,20 @@ if(toDownload == TRUE){
   # Read-in bat data
   BatData   <- read.csv(tempBAT.PATH, header = TRUE, stringsAsFactors = FALSE)
   PitData   <- read.csv(tempPIT.PATH, header = TRUE, stringsAsFactors = FALSE)
+  
+  # If Average Draft Position data is not in Fangraphs, read-in from a separate source
+  if(NoADP == TRUE){
+    
+    # Create a file path for ADP data
+    tempADP.PATH  <- file.path(storePATH, adpREAD)
+    
+    print("No ADP data in projectsions")
+    print(paste("...reading ADP data from:", tempADP.PATH))
+    
+    # Read-in data
+    externalADPData <- fread(tempADP.PATH) %>% select(Full_Name, Position, ADP) %>% as.data.frame()
+    
+  }
 }
 
 # Fix column names
@@ -171,13 +185,13 @@ PitSub        <- PitSub %>%
 
 
 # Read-in masterIDs
-masterIDs     <- read.csv(paste0(storePATH, IDsFILE), header = TRUE, stringsAsFactors = FALSE)
+masterIDs     <- read.csv(file.path(storePATH, IDsFILE), header = TRUE, stringsAsFactors = FALSE)
 
-if(useZIPs){
-  
-  masterIDs[, "fg_id"] <- as.integer(masterIDs[, "fg_id"])
-  
-}
+# if(useZIPs){
+#   
+#   masterIDs[, "fg_id"] <- as.integer(masterIDs[, "fg_id"])
+#   
+# }
 # Add position to the data using ESPN designated positions. They are the closest to Yahoo Fantasy
 # positions, and are cleaner than Yahoo's here.
 
@@ -220,6 +234,25 @@ if(midseason == FALSE){
   # Create a vector with round and ADP values
   draftRoundStart       <- c(seq(1, (numPlayers * numRounds), by = numPlayers),999)
   draftRoundNames       <- 1:(length(draftRoundStart) - 1)
+  
+  # Add a conditional if ADP is not in the projections and add them via other sources
+  
+  if(NoADP == TRUE){
+    
+    # Separate the pitchers from the batters
+    pitcherIX <- grep("^P$", externalADPData$Position)
+    
+    # Extract pitcher subset
+    pitADP    <- externalADPData[pitcherIX,]
+    
+    # Extract everything else (i.e. batters)
+    batADP    <- externalADPData[-pitcherIX, ]
+    
+    # Join ADP via the external table
+    BatSub    <- left_join(BatSub, batADP, by = c("Name" = "Full_Name"))
+    PitSub    <- left_join(PitSub, pitADP, by = c("Name" = "Full_Name"))
+  }
+  
   
   # Create a column with the projected draft round in our league
   BatSub$Round          <- cut(BatSub$ADP, breaks = draftRoundStart, labels = draftRoundNames)
@@ -297,7 +330,7 @@ if(toWrite == TRUE){
   
   
   # Create the output folder name
-  outputFolder  <- paste0(storePATH, "output/")
+  outputFolder  <- file.path(storePATH, "output/")
   
   # Assure that the output folder exists
   if(!dir.exists(outputFolder)){

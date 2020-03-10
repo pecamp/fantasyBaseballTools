@@ -184,6 +184,14 @@ allCombosDF$ScaledValue <- as.numeric(scale(allCombosDF$SUM) + scale(allCombosDF
 
 allCombosDF <- allCombosDF %>%
   arrange(desc(ScaledValue))
+
+# fwrite(head(allCombosDF), file = file.path(storePATH, "DepthC_TopScaled.csv"))
+
+allCombosDF <- allCombosDF %>%
+  arrange(desc(SUM))
+
+# fwrite(head(allCombosDF), file = file.path(storePATH, "DepthC_TopValue.csv"))
+
 #### Testing grounds
 
 

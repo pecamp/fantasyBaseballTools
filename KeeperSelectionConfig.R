@@ -9,7 +9,7 @@ packagesToUse <- c("tidyverse","magrittr", "xlsx", "stringi")
 #############################################
 # Keeper data location
 dataFolder    <- "../data/"
-dataFile      <- "PotentialKeepers2.xlsx"
+dataFile      <- "PotentialKeepers2020_3.xlsx"
 #############################################
 
 #############################################

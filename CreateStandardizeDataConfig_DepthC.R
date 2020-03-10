@@ -2,7 +2,7 @@
 # Configuration file for CreateStandardizedData.R
 
 # Library packages
-packagesToUse <- c("tidyverse","magrittr", 'data.table')
+packagesToUse <- c("tidyverse","magrittr")
 
 # Set number of players
 numPlayers  <- 11
@@ -21,7 +21,7 @@ useSteamer  <- FALSE
 toDownload  <- FALSE
 
 # Are you in midseason
-midseason <- FALSE
+midseason <-TRUE
 
 # Set a parameter to write out table
 toWrite     <- TRUE
@@ -37,24 +37,14 @@ baseBatURL  <- "https://www.fangraphs.com/projections.aspx?pos=all&stats=bat&typ
 basePitURL  <- "https://www.fangraphs.com/projections.aspx?pos=all&stats=pit&type=TYPESYS&team=0&lg=all&players=0"
 
 # Set read-in pathways
-baseBatRead <- "TYPESYSBat_20200229.csv"
-basePitRead <- "TYPESYSPit_20200229.csv"
-
-# ADP parameters
-
-# Logical vector to detemine if there is no ADP data in projections
-NoADP       <- TRUE
-
-# ADP filename
-adpREAD     <- "ADP_20200229.csv"
-
-
+baseBatRead <- "TYPESYSBat_20200228.csv"
+basePitRead <- "TYPESYSPit_20200228.csv"
 
 # Set master ID pathway
 IDsFILE     <- "masterIDs_20190414.csv"
 
 # Set storage pathways
-storePATH   <- "../data"
+storePATH   <- "../data/"
 dataPATH    <- ""
 
 
@@ -131,8 +121,8 @@ lowerPitVars  <- c("ERA", "WHIP", "BB.9", "FIP", "HR")
 pitWarFactor    <- 1.0
 
 # Data removal thresholds. I need to come up with a method for selecting this number
-ipLimit         <- 45
-paLimit         <- 350
+ipLimit         <- 25
+paLimit         <- 200
 
 
 
