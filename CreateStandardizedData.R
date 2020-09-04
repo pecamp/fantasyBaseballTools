@@ -120,15 +120,21 @@ if(limitMethod == 'Defined'){
 if(limitMethod == 'Quantile'){
   
   # Remove rows based on the limit set in the config e.g. ipQuantile
-  BatData <- BatData %>% 
+  BatQuant <- BatData %>% 
     select(PA) %>% 
     filter(PA > 1) %$% 
     quantile(PA, paQuantile)
   
-  PitData <- PitData %>% 
+  PitQuant <- PitData %>% 
     select(IP) %>% 
     filter(IP > 1) %$% 
     quantile(IP, ipQuantile)
+  
+  BatData <- BatData %>%
+    filter(PA > BatQuant)
+  
+  PitData <- PitData %>%
+    filter(IP > PitQuant)
 }
 
 
