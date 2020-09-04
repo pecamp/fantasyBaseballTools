@@ -2,7 +2,7 @@
 # Configuration file for CreateStandardizedData.R
 
 # Library packages
-packagesToUse <- c("tidyverse","magrittr", 'data.table')
+packagesToUse <- c("tidyverse","magrittr", 'data.table', 'reticulate')
 
 # Set number of players
 numPlayers  <- 11
@@ -12,16 +12,16 @@ numRounds   <- 25
 draftSpot   <- 3
 
 # Set logical paramters to use which projection data
-useDepthC   <- TRUE
+useDepthC   <- FALSE
 useZIPs     <- FALSE
 useFAN      <- FALSE
-useSteamer  <- FALSE
+useSteamer  <- TRUE
 
 # Set a paramter to download variables or not
 toDownload  <- FALSE
 
 # Are you in midseason
-midseason <- FALSE
+midseason <- TRUE
 
 # Set a parameter to write out table
 toWrite     <- TRUE
@@ -36,14 +36,17 @@ readVector  <- c("DepthC", "ZIPs", "FAN", "Steamer")
 baseBatURL  <- "https://www.fangraphs.com/projections.aspx?pos=all&stats=bat&type=TYPESYS"
 basePitURL  <- "https://www.fangraphs.com/projections.aspx?pos=all&stats=pit&type=TYPESYS&team=0&lg=all&players=0"
 
+# Create a today timestamp for config
+todayConfig = format(Sys.time(), '%Y%m%d')
+
 # Set read-in pathways
-baseBatRead <- "TYPESYSBat_20200229.csv"
-basePitRead <- "TYPESYSPit_20200229.csv"
+baseBatRead <- paste0('TYPESYSBat_', todayConfig, '.csv')
+basePitRead <- paste0('TYPESYSPit_', todayConfig, '.csv')
 
 # ADP parameters
 
 # Logical vector to detemine if there is no ADP data in projections
-NoADP       <- TRUE
+NoADP       <- FALSE
 
 # ADP filename
 adpREAD     <- "ADP_20200229.csv"
@@ -51,7 +54,7 @@ adpREAD     <- "ADP_20200229.csv"
 
 
 # Set master ID pathway
-IDsFILE     <- "masterIDs_20190414.csv"
+IDsFILE     <- "master_20200901.csv"
 
 # Set storage pathways
 storePATH   <- "../data"
@@ -131,8 +134,12 @@ lowerPitVars  <- c("ERA", "WHIP", "BB.9", "FIP", "HR")
 pitWarFactor    <- 1.0
 
 # Data removal thresholds. I need to come up with a method for selecting this number
-ipLimit         <- 45
-paLimit         <- 350
+ipLimit         <- 8
+paLimit         <- 50
 
+# Limit by quantile after remove all above 1
+ipQuantile         <- .5
+paQuantile         <- .5
 
-
+# Limit method
+limitMethod = 'Quantile'

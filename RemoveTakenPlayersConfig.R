@@ -2,11 +2,12 @@
 # Configuration file for RemoveTakenPlayers.R
 
 # Library packages
-packagesToUse <- c("tidyverse","magrittr")
+packagesToUse <- c("tidyverse","magrittr", "reticulate")
 
 # Set read-in folder
 dataInputFolder   <- "../data/output/"
 keeperInputFolder <- "../data/"
+scriptFolder      <- "C:/Users/phili/OneDrive/Documents/DataProjects/fantasyBaseballTools"
 roundSelectionsFolder <- "../data/output/selected/"
 
 # Set Batting and Pitching filePaths
@@ -20,7 +21,7 @@ myTeamFile        <- "MyTeam.csv"
 
 
 # Dates used in the data files
-fileDate      <- "20190827"
+fileDate      <- format(Sys.time(), '%Y%m%d')
 
 # Round 
 roundAt       <- 0
@@ -30,5 +31,5 @@ midseason     <- TRUE
 
 ################ Keeper information ###################
 
-keeperFileName<- "totalKeeperList_20190827.csv"
+keeperFileName<- paste0("totalKeeperList_", fileDate, ".csv")
 

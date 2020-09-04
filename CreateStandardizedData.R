@@ -58,45 +58,47 @@ if(length(dataIX) > 0){
   break
 }
 
-# Download data or else read-in
-if(toDownload == TRUE){
+
+print("Reading-in data..")
+
+# Create read-in bat pathway
+tempCSV       <- gsub("TYPESYS", readVector[dataIX[1]], baseBatRead)
+tempBAT.PATH  <- file.path(storePATH, tempCSV)
+
+# Create read-in pitch pathway
+tempCSV       <- gsub("TYPESYS", readVector[dataIX[1]], basePitRead)
+tempPIT.PATH  <- file.path(storePATH, tempCSV)
+
+# Echo location of data
+print(paste("...from:", tempBAT.PATH))
+print(paste("...from:", tempPIT.PATH))
+print('...looking for data')
+      
+# If the file does not exist, run the download scriot
+if(!(file.exists(tempBAT.PATH) | file.exists(tempPIT.PATH))){
+  print('Bat and pitching data from fangrahs does not exist')
+  py_run_file('C:\\Users\\phili\\OneDrive\\Documents\\DataProjects\\fantasyBaseballTools\\JupyterNotebooks\\FangraphsProjectionDownload.py')
   
-  print("Downloading data")
-  
-} else {
-  
-  print("Reading-in data..")
-  
-  # Create read-in bat pathway
-  tempCSV       <- gsub("TYPESYS", readVector[dataIX[1]], baseBatRead)
-  tempBAT.PATH  <- file.path(storePATH, tempCSV)
-  
-  # Create read-in pitch pathway
-  tempCSV       <- gsub("TYPESYS", readVector[dataIX[1]], basePitRead)
-  tempPIT.PATH  <- file.path(storePATH, tempCSV)
-  
-  # Echo location of data
-  print(paste("...from:", tempBAT.PATH))
-  print(paste("...from:", tempPIT.PATH))
-  
-  # Read-in bat data
-  BatData   <- read.csv(tempBAT.PATH, header = TRUE, stringsAsFactors = FALSE)
-  PitData   <- read.csv(tempPIT.PATH, header = TRUE, stringsAsFactors = FALSE)
-  
-  # If Average Draft Position data is not in Fangraphs, read-in from a separate source
-  if(NoADP == TRUE){
-    
-    # Create a file path for ADP data
-    tempADP.PATH  <- file.path(storePATH, adpREAD)
-    
-    print("No ADP data in projectsions")
-    print(paste("...reading ADP data from:", tempADP.PATH))
-    
-    # Read-in data
-    externalADPData <- fread(tempADP.PATH) %>% select(Full_Name, Position, ADP) %>% as.data.frame()
-    
-  }
 }
+
+# Read-in bat data
+BatData   <- read.csv(tempBAT.PATH, header = TRUE, colClasses=c("playerid"="character"), stringsAsFactors = FALSE)
+PitData   <- read.csv(tempPIT.PATH, header = TRUE, colClasses=c("playerid"="character"), stringsAsFactors = FALSE)
+
+# If Average Draft Position data is not in Fangraphs, read-in from a separate source
+if(NoADP == TRUE){
+  
+  # Create a file path for ADP data
+  tempADP.PATH  <- file.path(storePATH, adpREAD)
+  
+  print("No ADP data in projectsions")
+  print(paste("...reading ADP data from:", tempADP.PATH))
+  
+  # Read-in data
+  externalADPData <- fread(tempADP.PATH) %>% select(Full_Name, Position, ADP) %>% as.data.frame()
+  
+}
+
 
 # Fix column names
 colnames(BatData)[1] <- "Name"
@@ -104,17 +106,34 @@ colnames(PitData)[1] <- "Name"
 
 ######################## Clean data ################################
 
-# Remove any rows that are below the ipLimit and paLimit
-BatData       <- BatData %>% 
-                    filter(PA > paLimit)
+if(limitMethod == 'Defined'){
+  
+  # Remove any rows that are below the ipLimit and paLimit
+  BatData       <- BatData %>% 
+    filter(PA > paLimit)
+  
+  PitData       <- PitData %>% 
+    filter(IP > ipLimit)
+  
+}
 
-PitData       <- PitData %>% 
-                    filter(IP > ipLimit)
+if(limitMethod == 'Quantile'){
+  
+  # Remove rows based on the limit set in the config e.g. ipQuantile
+  BatData <- BatData %>% 
+    select(PA) %>% 
+    filter(PA > 1) %$% 
+    quantile(PA, paQuantile)
+  
+  PitData <- PitData %>% 
+    select(IP) %>% 
+    filter(IP > 1) %$% 
+    quantile(IP, ipQuantile)
+}
+
 
 # Convert SO to SO per PA
 BatData$SO    <- BatData$SO / BatData$PA
-
-
 ######################## Scale data ################################
 
 # Create indices for columns of interest
@@ -330,7 +349,7 @@ if(toWrite == TRUE){
   
   
   # Create the output folder name
-  outputFolder  <- file.path(storePATH, "output/")
+  outputFolder  <- file.path(storePATH, "output")
   
   # Assure that the output folder exists
   if(!dir.exists(outputFolder)){
@@ -339,8 +358,8 @@ if(toWrite == TRUE){
   }
   
   # Create final PATH
-  batPATH       <- paste0(outputFolder, batName)
-  pitPATH       <- paste0(outputFolder, pitName)
+  batPATH       <- file.path(outputFolder, batName)
+  pitPATH       <- file.path(outputFolder, pitName)
   
   # Write out tables
   write.table(BatSub, batPATH, sep = ",", col.names = TRUE, row.names = FALSE)

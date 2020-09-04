@@ -21,7 +21,7 @@ library(XML)
 library(lubridate)
 
 # Set in debug mode or not
-debugMode <- FALSE
+debugMode <- TRUE
 
 # Set an expired logical
 expired       <- FALSE
@@ -88,7 +88,8 @@ if(doesNotExist | expired){
   
   
   if(debugMode == TRUE){
-    inputArgs <- "C:/Users/phili/Documents/Repos/nonCommittedItems/YahooKey3.txt"
+    # inputArgs <- "C:/Users/phili/Documents/Repos/nonCommittedItems/YahooKey3.txt"
+    inputArgs <- "C:\\Users\\phili\\OneDrive\\Documents\\OldOneDrive\\Repos\\nonCommittedItems\\YahooKey3.txt"
     
   } else {
     
@@ -136,7 +137,8 @@ if(doesNotExist | expired){
   yahoo <- oauth_endpoints("yahoo")
   
   personalApp <- oauth_app("yahoo", key=CredKey, secret=CredSecret, redirect_uri = "oob")
-  yahoo_token<- oauth1.0_token(yahoo, personalApp, cache = TRUE)
+  # yahoo_token<- oauth1.0_token(yahoo, personalApp, cache = TRUE)
+  yahoo_token<- oauth2.0_token(yahoo, personalApp, cache = TRUE)
   
   
   save(yahoo_token,file="../nonCommittedItems/yahoo_token.Rdata") 

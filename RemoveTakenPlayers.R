@@ -20,22 +20,45 @@ lapply(packagesToUse, function(x) library(x, character.only = TRUE))
 
 today <- format(Sys.time(), "%Y%m%d")
 
+# Batting columns (used for my team evaluations)
+battingCols   <- c("HR", "R", "RBI", "SO", "SB", "AVG", "OBP", "SLG", "wOBA")
+pitchingCols  <- c("W", "ERA", "IP","HR", "SO", "WHIP", "K.9", "BB.9", "FIP", "WAR")
+
 ##################### Read-in data #####################
 
 # Create scale paths
 finalBatPATH    <- paste0(dataInputFolder, paste0(batFilePre, "_", fileDate, ".csv"))
 finalPitPATH    <- paste0(dataInputFolder, paste0(pitFilePre, "_", fileDate, ".csv"))
 
+# If file paths do not exist, run CreateStndardizeData.R
+if(!(file.exists(finalBatPATH) | file.exists(finalPitPATH))){
+  
+  # Create a path to the script
+  print('NOTE: Standardized data does not exist...running program')
+  scriptPATH = file.path(scriptFolder, 'CreateStandardizedData.R')
+  system(paste('Rscript', 'CreateStandardizedData.R'))
+  
+}
+
+
 # Read-in scaled data
-battingData     <- read.table(finalBatPATH, sep = ",", header = TRUE, stringsAsFactors = FALSE)
-pitchingData    <- read.table(finalPitPATH, sep = ",", header = TRUE, stringsAsFactors = FALSE)
+battingData     <- read.csv(finalBatPATH, header = TRUE, stringsAsFactors = FALSE)
+pitchingData    <- read.csv(finalPitPATH, sep = ",", header = TRUE, stringsAsFactors = FALSE)
 
 # Create total keeper list file path
 keeperFilePATH  <- paste0(keeperInputFolder, keeperFileName)
 
 if(midseason == TRUE){
   
-  keeperData      <- read.table(keeperFilePATH, sep = ",", header = TRUE, stringsAsFactors = FALSE)
+  if(!file.exists(keeperFilePATH)){
+    
+    print('Keeper data does not exists...running program')
+    py_run_file('C:\\Users\\phili\\OneDrive\\Documents\\DataProjects\\fantasyBaseballTools\\JupyterNotebooks\\DownloadTakenAndAvailablePlayers.py')
+    
+  }
+  
+  keeperData      <- read.csv(keeperFilePATH, header = TRUE, stringsAsFactors = FALSE)
+  colnames(keeperData)[1] <- 'Keeper'
   
   
 } else {
@@ -45,6 +68,8 @@ if(midseason == TRUE){
                               select(Keeper) 
   
 }
+
+
 
 ##################### Remove players from Scaled Data #####################
 
@@ -79,24 +104,44 @@ if(midseason == TRUE){
 ### REMEMBER TO SWITCH TO OBTAIN IDS (NOT NAMES) WHEN EXTRACTING FROM YAHOO
 print(keeperData$Keeper[-keptFoundIX])
 
-# Remove players
-finalBatData  <- battingData[-batKeeperIX, ]
-finalPitData  <- pitchingData[-pitKeeperIX,]
+# if(length(keptFoundIX) > 0){
+if(TRUE){
+  
+  # Remove players
+  finalBatData  <- battingData[-batKeeperIX, ]
+  finalPitData  <- pitchingData[-pitKeeperIX,]
+  
+  # Store keeper players
+  finalBatKeeperData    <- battingData[batKeeperIX,]
+  finalPitKeeperData    <- pitchingData[pitKeeperIX,]
+  
+} else {
+  
+  # Remove players
+  finalBatData  <- battingData
+  finalPitData  <- pitchingData
+  
+  # Store keeper players
+  finalBatKeeperData    <- battingData
+  finalPitKeeperData    <- pitchingData
+  
+}
 
-# Store keeper players
-finalBatKeeperData    <- battingData[batKeeperIX,]
-finalPitKeeperData    <- pitchingData[pitKeeperIX,]
 
 ##### Read - in my team
-myTeam        <- read.table(paste0("../data/", myTeamFile), 
-                            sep = ",", header = TRUE, stringsAsFactors = FALSE)
+myTeam        <- read.csv(paste0("../data/", myTeamFile), header = TRUE, stringsAsFactors = FALSE)
+colnames(myTeam)[1] = 'Keeper'
 
 # Index players from my team
-batMyTeamIX <- which(battingData$Name %in% myTeam$Name)
-pitMyTeamIX <- which(pitchingData$Name %in% myTeam$Name)
+batMyTeamIX <- which(battingData$yahoo_id %in% myTeam$Player_ID)
+pitMyTeamIX <- which(pitchingData$yahoo_id %in% myTeam$Player_ID)
 
-myTeamBat   <- battingData[batMyTeamIX,]
-myTeamPit   <- pitchingData[pitMyTeamIX,]
+if(length(batMyTeamIX) > 0 & length(pitMyTeamIX) > 0){
+  
+  myTeamBat   <- battingData[batMyTeamIX,]
+  myTeamPit   <- pitchingData[pitMyTeamIX,]
+  
+}
 
 # Create write out file path
 selectedBatPATH  <- paste0(roundSelectionsFolder, paste0(paste(selBatFilePre, roundAt, sep = "_"), ".csv"))
@@ -104,15 +149,25 @@ selectedPitPATH  <- paste0(roundSelectionsFolder, paste0(paste(selPitFilePre, ro
 
 if(!dir.exists(roundSelectionsFolder)) dir.create(roundSelectionsFolder)
 
+# Examine by position
+
+
 dataByPos <- split(finalBatData, f = finalBatData$espn_pos)
 dataPitPos <- split(finalPitData, f = finalPitData$espn_pos)
 
 dataKeepByPos     <- split(finalBatKeeperData, f = finalBatKeeperData$espn_pos)
 dataKeepPitByPos  <- split(finalPitKeeperData, f = finalPitKeeperData$espn_pos)
 
-posOfI  <- dataByPos[["CF"]]
+head(finalBatData, n = 25)
+head(finalPitData, n = 25)
+
+posOfI  <- dataByPos[["C"]]
 pitPOI  <- dataPitPos[["RP"]]
 keepOfI <- dataKeepByPos[["SS"]]
+
+# # Calculation team needs
+# apply(select(myTeamBat, all_of(battingCols)), 2, sum)
+# apply(select(myTeamPit, all_of(pitchingCols)), 2, sum)
 
 pitPOI$ThreeCatsSUM <- pitPOI$ERA + pitPOI$K.9 + pitPOI$BB.9 
 finalPitData$ThreeCatsSUM <- finalPitData$ERA + finalPitData$K.9 + finalPitData$BB.9 + finalPitData$FIP

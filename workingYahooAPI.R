@@ -26,7 +26,7 @@ tokenLoc  <-  "../nonCommittedItems/yahoo_token.Rdata"
 source("yahooFantasyHelperFunctions.R")
 
 # Read table into R
-inputArgs <- "C:/Users/phili/Documents/Repos/nonCommittedItems/YahooKey.txt"
+inputArgs <- "C:\\Users\\phili\\OneDrive\\Documents\\OldOneDrive\\Repos\\nonCommittedItems\\YahooKey3.txt"
 
 
 
@@ -50,15 +50,15 @@ httr::BROWSE(httr::oauth2.0_authorize_url(yahoo, myapp, scope="fspt-r"
                                           , redirect_uri = myapp$redirect_uri))
 
 #Create Token
-yahoo_token <- httr::oauth2.0_access_token(yahoo,myapp,code="fp3egzf")
+yahoo_token <- httr::oauth2.0_access_token(yahoo,myapp,code="bsbdszq")
 save(yahoo_token,file="../nonCommittedItems/yahoo_token.Rdata")
 
 load(tokenLoc)
 
 # Set parameters 
 league_sport  <- "mlb"
-league_year   <- 2019
-league_ID     <- 53679
+league_year   <- 2020
+league_ID     <- 136325
 
 
 leagueKey <- paste0(league_sport,'.l.',league_ID)
